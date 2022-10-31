@@ -1,0 +1,85 @@
+---
+title: "HW6 - Practicing functions with gapminder"
+author: "Kim Lea Rothe"
+date: "2022-10-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Setup
+
+```{r libraries}
+library(tidyverse)
+library(gapminder)
+library(stringr)
+
+gapminder_df <- as.data.frame(gapminder)
+```
+
+###Exercise 1
+Define a defensive function that calculates the Gross Domestic Product of a nation from the data available in the gapminder dataset. You can use the population and GDPpercapita columns for it. Using that function, calculate the GDP of Denmark in the following years: 1967, 1977, 1987, 1997, 2007, and 2017.
+
+First, I wrote the function, that is taking a dataset and calculating the GDP by a given given year.
+```{r function}
+calculate_gdp <- function(data, calculate_year) {
+  selected_year <- data %>% filter(data$year == calculate_year)
+  gdp <- selected_year$gdpPercap * selected_year$pop
+  return(gdp)
+}
+```
+
+Then, i subselect only data from Denmark and create a new dataset with this data.
+```{r data trim}
+denmark <- gapminder %>%
+  select(country, year, pop, gdpPercap) %>% #apparently this doesn't work
+  filter(grepl("Denmark", country, ignore.case = T))
+```
+
+At last, i calculate the GDP for the given years and create an output.
+```{r calculating}
+gdp_1967 <- calculate_gdp(denmark, 1967)
+gdp_1977 <- calculate_gdp(denmark, 1977)
+gdp_1987 <- calculate_gdp(denmark, 1987)
+gdp_1997 <- calculate_gdp(denmark, 1997)
+gdp_2007 <- calculate_gdp(denmark, 2007)
+gdp_2017 <- calculate_gdp(denmark, 2017)
+paste0("The GDP of Denmark was ", gdp_1967, " in 1967, ", gdp_1977, " in 1977, ", gdp_1987, " in 1987, ", gdp_1997, " in 1997, ", gdp_2007, " in 2007, and ", gdp_2017, " in 2017.")
+```
+
+###Exercise 2
+Write a script that loops over each country in the gapminder dataset, tests whether the country starts with a ‘B’ , and prints out whether the life expectancy is smaller than 50, between 50 and 70, or greater than 70.
+
+First, i create a subset of the data filtering by all countries that start with the letter 'B'.
+```{r data trim}
+country_b <- gapminder_df %>%
+  mutate(country = as.character(country)) %>% 
+  filter(str_detect(country, "^B"))
+```
+
+Then, i create a loop that goes through each row of the new dataset, checks the life expectancy and prints whether it is lower than 50, between 50 and 70 (including 50 and 70), and greater than 70.
+```{r loop}
+for (row in 1:nrow(country_b)) {
+  if (country_b$lifeExp[row] < 50) {
+    print(paste0("The life expectancy in ", country_b$country[row], " is smaller than 50 in year ", country_b$year[row]))
+  } else if (country_b$lifeExp[row] >=50 & country_b$lifeExp[row] <=70) {
+    print(paste0("The life expectancy in ", country_b$country[row], " is between 50 and 70 in year ", country_b$year[row]))
+  } else {
+    print(paste0("The life expectancy in ", country_b$country[row], " is bigger than 70 in year", country_b$year[row]))
+  }
+}
+```
+
+##Exercise 3
+Challenge/Optional: Write a script that loops over each country in the gapminder dataset, tests whether the country starts with a ‘M’ and graphs life expectancy against time (using plot() function) as a line graph if the mean life expectancy is under 50 years.
+
+First, i subset the data by countries that start with the letter 'M' and have a life expectancy lower than 50.
+```{r data trim}
+country_m <- gapminder_df %>%
+  mutate(country = as.character(country)) %>% 
+  filter(str_detect(country, "^M")) %>%
+  filter(lifeExp < 50)
+```
+Then i gave up on this exercise, because i couldn't figure out how to create a graph per country and it was already 5PM.
