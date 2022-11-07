@@ -1,0 +1,59 @@
+---
+title: "scraping-hw"
+author: "Kim Lea Rothe"
+date: "2022-11-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Task:
+Use the rvest library to scrape data of your interest.
+
+In the following, the code from the CDS seminar on 01/11/2022 was used and transformed. The original code can be found here: https://github.com/Digital-Methods-HASS/WebscrapingPoliceKillings/blob/master/scraping.Rmd
+```{r libraries, warning=FALSE, message=FALSE}
+library(rvest)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(janitor)
+```
+
+```{r scrape-function}
+scrape_sdg_index <- function(website){
+	url <- read_html(website)
+	annual_table <- url %>% 
+ 			html_nodes("table") %>%
+ 			html_table()  # result is a list
+  annual_table <- do.call(cbind,unlist(annual_table, recursive = FALSE))
+ }
+
+# Test that the function works on year 2018
+
+data_sdg <- scrape_sdg_index("https://dashboards.sdgindex.org/rankings")
+data_sdg %>% 
+	head()
+```
+In looking at the head of the table, it becomes obvious that the first cell in the variable "country" has some value in it in addition to the country. This is just one error that can be cleaned up manually.
+```{r manual cleanup}
+data_sdg[1, 2] = "Finland"
+head(data_sdg)
+```
+Following up an obvious error in the data, it is a good idea to check on data tzpes to make sure calculations can be made later on.
+```{r clean-data}
+data_sdg <- as_tibble(data_sdg)
+str(data_sdg)
+```
+As seen above, the columns Rank and Score, that are only useful for calculations later when they rae numeric, are characters in the current dataset.
+```{r wrangle-columns, message = FALSE, warning=FALSE}
+library(tidyverse)
+data <- data_sdg %>% 
+	mutate(Rank = as.numeric(Rank))  %>% 
+	mutate(Score = as.numeric(Score)) 
+str(data)
+```
+Now the data is ready for further use.
+
+I know, that this is a very simple web scraping example with not much further use, but I wanted to try webscraping on somehow relevant data for my project, and there were no tables for the different years available. I promise, I am able to include the for-loop from the seminar code (https://github.com/Digital-Methods-HASS/WebscrapingPoliceKillings/blob/master/scraping.Rmd) and combine tables from different years.
